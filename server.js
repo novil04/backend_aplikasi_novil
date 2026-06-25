@@ -488,7 +488,7 @@ app.get('/', (req, res) => {
   res.json({
     status: 'OK',
     message: 'Pengering Ikan Backend Server - MQTT Client Enabled',
-    version: '1.0.1',
+    version: '1.0.3-relay-fix',  // Updated version with relay boolean fix
     uptime: process.uptime(),
     timestamp: new Date().toISOString()
   });
@@ -805,7 +805,7 @@ app.use((err, req, res, next) => {
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('');
   console.log('='.repeat(60));
-  console.log('🚀 PENGERING IKAN BACKEND SERVER');
+  console.log('🚀 PENGERING IKAN BACKEND SERVER v1.0.3-relay-fix');
   console.log('='.repeat(60));
   console.log(`📡 REST API: http://0.0.0.0:${PORT}`);
   console.log(`🔗 MQTT Broker: ${MQTT_BROKER_URL}`);
