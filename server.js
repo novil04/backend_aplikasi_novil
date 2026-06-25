@@ -55,8 +55,8 @@ let latestData = {
 // Last data received timestamp
 let lastDataTimestamp = Date.now();
 
-// Connection timeout (30 seconds)
-const CONNECTION_TIMEOUT = 30000;
+// Connection timeout (5 minutes = 300 seconds)
+const CONNECTION_TIMEOUT = 300000;
 
 // Check connection status periodically
 setInterval(() => {
