@@ -52,6 +52,30 @@ let latestData = {
   timestamp: new Date().toISOString()
 };
 
+// Last data received timestamp
+let lastDataTimestamp = Date.now();
+
+// Connection timeout (30 seconds)
+const CONNECTION_TIMEOUT = 30000;
+
+// Check connection status periodically
+setInterval(() => {
+  const now = Date.now();
+  const timeSinceLastData = now - lastDataTimestamp;
+  
+  // If no data received for more than CONNECTION_TIMEOUT, mark as disconnected
+  if (timeSinceLastData > CONNECTION_TIMEOUT && latestData.status !== 'DISCONNECTED') {
+    console.log('⚠️  No data received for', Math.floor(timeSinceLastData / 1000), 'seconds');
+    console.log('   Marking as DISCONNECTED');
+    latestData.status = 'DISCONNECTED';
+    // Optionally reset relay states
+    latestData.relay1 = false;
+    latestData.relay2 = false;
+    latestData.relay3 = false;
+    latestData.relay4 = false;
+  }
+}, 5000); // Check every 5 seconds
+
 // Initialize database on startup
 (async () => {
   try {
@@ -167,6 +191,23 @@ mqttClient.on('message', async (topic, message) => {
       const now = new Date();
       const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
       
+      // Update last data timestamp
+      lastDataTimestamp = Date.now();
+      
+      // Helper function to map ESP32 status to backend status
+      const mapStatus = (esp32Status) => {
+        if (!esp32Status) return latestData.status;
+        const statusMap = {
+          'SELESAI': 'COMPLETED',
+          'BERJALAN': 'RUNNING',
+          'SCANNING': 'SCANNING',
+          'READY': 'READY',
+          'CONNECTED': 'CONNECTED',
+          'ERROR': 'ERROR'
+        };
+        return statusMap[esp32Status.toUpperCase()] || esp32Status;
+      };
+
       // Update latestData dengan data dari ESP32 (termasuk status relay)
       // Use explicit check for undefined/null to handle false values correctly
       latestData = {
@@ -177,7 +218,7 @@ mqttClient.on('message', async (topic, message) => {
         relay2: (data.relay2 !== undefined && data.relay2 !== null) ? Boolean(data.relay2) : latestData.relay2,
         relay3: (data.relay3 !== undefined && data.relay3 !== null) ? Boolean(data.relay3) : latestData.relay3,
         relay4: (data.relay4 !== undefined && data.relay4 !== null) ? Boolean(data.relay4) : latestData.relay4,
-        status: latestData.status, // Keep current status
+        status: mapStatus(data.status), // Map ESP32 status to backend status
         timestamp: wibTime.toISOString()
       };
       
@@ -185,7 +226,8 @@ mqttClient.on('message', async (topic, message) => {
         relay1: latestData.relay1,
         relay2: latestData.relay2,
         relay3: latestData.relay3,
-        relay4: latestData.relay4
+        relay4: latestData.relay4,
+        status: latestData.status
       });
       
       // Save to database
@@ -328,6 +370,23 @@ aedes.on('publish', async (packet, client) => {
       try {
         const data = JSON.parse(message);
         
+        // Update last data timestamp
+        lastDataTimestamp = Date.now();
+        
+        // Helper function to map ESP32 status to backend status
+        const mapStatus = (esp32Status) => {
+          if (!esp32Status) return latestData.status;
+          const statusMap = {
+            'SELESAI': 'COMPLETED',
+            'BERJALAN': 'RUNNING',
+            'SCANNING': 'SCANNING',
+            'READY': 'READY',
+            'CONNECTED': 'CONNECTED',
+            'ERROR': 'ERROR'
+          };
+          return statusMap[esp32Status.toUpperCase()] || esp32Status;
+        };
+        
         // Update latestData dengan data dari ESP32 (termasuk status relay)
         // Use explicit check for undefined/null to handle false values correctly
         latestData = {
@@ -338,7 +397,7 @@ aedes.on('publish', async (packet, client) => {
           relay2: (data.relay2 !== undefined && data.relay2 !== null) ? Boolean(data.relay2) : latestData.relay2,
           relay3: (data.relay3 !== undefined && data.relay3 !== null) ? Boolean(data.relay3) : latestData.relay3,
           relay4: (data.relay4 !== undefined && data.relay4 !== null) ? Boolean(data.relay4) : latestData.relay4,
-          status: latestData.status, // Keep current status
+          status: mapStatus(data.status), // Map ESP32 status to backend status
           timestamp: new Date().toISOString()
         };
         
