@@ -148,6 +148,15 @@ mqttClient.on('message', async (topic, message) => {
     try {
       const data = JSON.parse(msg);
       
+      // Debug: log parsed data
+      console.log('📦 Parsed MQTT data:', data);
+      console.log('   Relay values from ESP32:', {
+        relay1: data.relay1,
+        relay2: data.relay2,
+        relay3: data.relay3,
+        relay4: data.relay4
+      });
+      
       // Get current time in WIB (UTC+7)
       const now = new Date();
       const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
@@ -164,6 +173,13 @@ mqttClient.on('message', async (topic, message) => {
         status: latestData.status, // Keep current status
         timestamp: wibTime.toISOString()
       };
+      
+      console.log('   Final latestData relay values:', {
+        relay1: latestData.relay1,
+        relay2: latestData.relay2,
+        relay3: latestData.relay3,
+        relay4: latestData.relay4
+      });
       
       // Save to database
       try {
