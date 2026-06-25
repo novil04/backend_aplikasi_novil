@@ -149,12 +149,16 @@ mqttClient.on('message', async (topic, message) => {
       const data = JSON.parse(msg);
       
       // Debug: log parsed data
-      console.log('📦 Parsed MQTT data:', data);
-      console.log('   Relay values from ESP32:', {
-        relay1: data.relay1,
-        relay2: data.relay2,
-        relay3: data.relay3,
-        relay4: data.relay4
+      console.log('📦 Parsed MQTT data:', JSON.stringify(data, null, 2));
+      console.log('   Data type check:', {
+        relay1_type: typeof data.relay1,
+        relay1_value: data.relay1,
+        relay2_type: typeof data.relay2,
+        relay2_value: data.relay2,
+        relay3_type: typeof data.relay3,
+        relay3_value: data.relay3,
+        relay4_type: typeof data.relay4,
+        relay4_value: data.relay4
       });
       
       // Get current time in WIB (UTC+7)
@@ -162,14 +166,15 @@ mqttClient.on('message', async (topic, message) => {
       const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
       
       // Update latestData dengan data dari ESP32 (termasuk status relay)
+      // Use explicit check for undefined/null to handle false values correctly
       latestData = {
         suhu: data.suhu || 0,
         berat: data.berat || 0,
         target: data.target || 0,
-        relay1: data.relay1 !== undefined ? data.relay1 : latestData.relay1, // Update dari ESP32
-        relay2: data.relay2 !== undefined ? data.relay2 : latestData.relay2,
-        relay3: data.relay3 !== undefined ? data.relay3 : latestData.relay3,
-        relay4: data.relay4 !== undefined ? data.relay4 : latestData.relay4,
+        relay1: (data.relay1 !== undefined && data.relay1 !== null) ? Boolean(data.relay1) : latestData.relay1,
+        relay2: (data.relay2 !== undefined && data.relay2 !== null) ? Boolean(data.relay2) : latestData.relay2,
+        relay3: (data.relay3 !== undefined && data.relay3 !== null) ? Boolean(data.relay3) : latestData.relay3,
+        relay4: (data.relay4 !== undefined && data.relay4 !== null) ? Boolean(data.relay4) : latestData.relay4,
         status: latestData.status, // Keep current status
         timestamp: wibTime.toISOString()
       };
@@ -322,14 +327,15 @@ aedes.on('publish', async (packet, client) => {
         const data = JSON.parse(message);
         
         // Update latestData dengan data dari ESP32 (termasuk status relay)
+        // Use explicit check for undefined/null to handle false values correctly
         latestData = {
           suhu: data.suhu || 0,
           berat: data.berat || 0,
           target: data.target || 0,
-          relay1: data.relay1 !== undefined ? data.relay1 : latestData.relay1, // Update dari ESP32
-          relay2: data.relay2 !== undefined ? data.relay2 : latestData.relay2,
-          relay3: data.relay3 !== undefined ? data.relay3 : latestData.relay3,
-          relay4: data.relay4 !== undefined ? data.relay4 : latestData.relay4,
+          relay1: (data.relay1 !== undefined && data.relay1 !== null) ? Boolean(data.relay1) : latestData.relay1,
+          relay2: (data.relay2 !== undefined && data.relay2 !== null) ? Boolean(data.relay2) : latestData.relay2,
+          relay3: (data.relay3 !== undefined && data.relay3 !== null) ? Boolean(data.relay3) : latestData.relay3,
+          relay4: (data.relay4 !== undefined && data.relay4 !== null) ? Boolean(data.relay4) : latestData.relay4,
           status: latestData.status, // Keep current status
           timestamp: new Date().toISOString()
         };
