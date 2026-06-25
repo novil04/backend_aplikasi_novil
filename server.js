@@ -1,3 +1,5 @@
+console.log('🔄 SERVER STARTING - Version 1.0.3-relay-fix - ' + new Date().toISOString());
+
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
